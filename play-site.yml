@@ -1,0 +1,26 @@
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: get OpenVPN gpg
+      get_url:
+        url: https://swupdate.openvpn.net/repos/repo-public.gpg
+        dest: /tmp/openvpn.gpg
+
+    - name: add OpenVPN key
+      apt_key:
+        file: /tmp/openvpn.gpg
+
+    - name: get current release
+      shell: lsb_release -c | awk '{print $2}'
+      register: release
+
+    - name: add OpenVPN repo
+      apt_repository:
+        repo: deb http://build.openvpn.net/debian/openvpn/stable "{{ release.stdout }}" main
+        update_cache: yes
+
+    - name: install OpenVPN
+      apt:
+        name: openvpn
+
